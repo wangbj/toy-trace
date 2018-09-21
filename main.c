@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <assert.h>
 
-void usage(const char* prog) {
+static void usage(const char* prog) {
   fprintf(stderr, "%s <program> [program_arguments]\n", prog);
 }
 
@@ -68,8 +68,6 @@ static void do_ptrace_exec(pid_t pid) {
   saved_insn = ptrace(PTRACE_PEEKTEXT, pid, regs.rip, 0);
   assert(saved_insn != -1);
 
-  printf("rip = %llx, insn: %lx\n", regs.rip, saved_insn);
-
   /* break point, lsb first */
   assert(ptrace(PTRACE_POKETEXT, pid, regs.rip, (saved_insn & ~0xff) | 0xcc) == 0);
   assert(ptrace(PTRACE_CONT, pid, 0, 0) == 0);
@@ -101,16 +99,14 @@ static int run_tracer(pid_t pid) {
     return -1;
   }
   
-  ret = ptrace(PTRACE_SETOPTIONS, pid, NULL, PTRACE_O_TRACEEXEC | PTRACE_O_TRACESYSGOOD);
+  ret = ptrace(PTRACE_SETOPTIONS, pid, NULL, PTRACE_O_TRACEEXEC | PTRACE_O_EXITKILL);
   if (ret != 0) {
     fprintf(stderr, "ptrace_setoptions, error: %s\n", strerror(errno));
     return -1;
   }
 
   assert(ptrace(PTRACE_CONT, pid, 0, 0) == 0);
-
   assert(waitpid(pid, &status, 0) == pid);
-
   /* wait for our expected PTRACE_EVENT_EXEC */
   if (WIFSTOPPED(status) && WSTOPSIG(status) == SIGTRAP && (status >> 16 == PTRACE_EVENT_EXEC)) {
     do_ptrace_exec(pid);
