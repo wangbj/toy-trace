@@ -80,7 +80,7 @@ static void do_ptrace_exec(pid_t pid) {
     assert(ptrace(PTRACE_GETREGS, pid, 0, &regs) == 0);
     regs.rip -= 1; /* 0xcc */
     assert(ptrace(PTRACE_SETREGS, pid, 0, &regs) == 0);
-    assert(ptrace(PTRACE_CONT, 0, 0) == 0);
+    assert(ptrace(PTRACE_CONT, pid, 0, 0) == 0);
   } else {
     fprintf(stderr, "expect breakpoint hits.\n");
     exit(1);
@@ -88,7 +88,6 @@ static void do_ptrace_exec(pid_t pid) {
 }
 
 static int run_tracer(pid_t pid) {
-  long ret;
   int status;
 
   assert(waitpid(pid, &status, 0) == pid);
@@ -99,25 +98,19 @@ static int run_tracer(pid_t pid) {
     return -1;
   }
   
-  ret = ptrace(PTRACE_SETOPTIONS, pid, NULL, PTRACE_O_TRACEEXEC | PTRACE_O_EXITKILL);
-  if (ret != 0) {
-    fprintf(stderr, "ptrace_setoptions, error: %s\n", strerror(errno));
-    return -1;
-  }
-
+  assert(ptrace(PTRACE_SETOPTIONS, pid, NULL, PTRACE_O_TRACEEXEC | PTRACE_O_EXITKILL) == 0);
   assert(ptrace(PTRACE_CONT, pid, 0, 0) == 0);
   assert(waitpid(pid, &status, 0) == pid);
   /* wait for our expected PTRACE_EVENT_EXEC */
   if (WIFSTOPPED(status) && WSTOPSIG(status) == SIGTRAP && (status >> 16 == PTRACE_EVENT_EXEC)) {
     do_ptrace_exec(pid);
-    assert(ptrace(PTRACE_CONT, pid, 0, 0) == 0);
   } else {
     fprintf(stderr, "expect ptrace exev event.\n");
     return -1;
   }
   
   /* wait for sigchld */
-  waitpid(pid, &status, 0);
+  assert(waitpid(pid, &status, 0) == pid);
   if (WIFEXITED(status)) {
     return WEXITSTATUS(status);
   } else {
