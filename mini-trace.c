@@ -1,3 +1,7 @@
+/**
+ * a mini tracer demonstrates ptrace api
+ * and how to insert breakpoint at program entry point
+ */
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/ptrace.h>
@@ -122,7 +126,7 @@ static int run_tracer(pid_t pid) {
 static int run_app(int argc, char* argv[])
 {
   pid_t pid;
-  int ret;
+  int ret = -1;
   
   pid = fork();
   
@@ -141,8 +145,6 @@ static int run_app(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-  pid_t pid;
-  
   if (argc < 2) {
     usage(argv[0]);
     exit(1);
