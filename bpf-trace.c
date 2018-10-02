@@ -1,6 +1,5 @@
 /**
- * a mini tracer demonstrates ptrace api
- * and how to insert breakpoint at program entry point
+ * a bpf tracer demonstrates how to ptrace with seccomp-bpf
  */
 #include <sys/types.h>
 #include <sys/wait.h>
