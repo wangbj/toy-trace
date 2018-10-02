@@ -2,8 +2,9 @@ CC	 = clang
 LD	 = lld
 
 CFLAGS	 = -g -Wall -O2 -D_POSIX_C_SOURCE=20180920 -fPIC
+SECCOMP  = -lseccomp
 
-all: mini-trace
+all: mini-trace bpf-trace
 
 SRCS	 = $(shell ls *.c)
 OBJS	 = $(patsubst %.c, %.o, ${SRCS})
@@ -13,6 +14,9 @@ OBJS	 = $(patsubst %.c, %.o, ${SRCS})
 
 mini-trace: mini-trace.o
 	$(CC) $^ -o $@ $(CFLAGS)
+
+bpf-trace: bpf-trace.o
+	$(CC) $^ -o $@ $(CFLAGS) $(SECCOMP)
 
 clean:
 	$(RM) $(OBJS) trace
