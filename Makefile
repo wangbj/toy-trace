@@ -21,6 +21,10 @@ mini-trace-childs: mini-trace-childs.o
 bpf-trace: bpf-trace.o
 	$(CC) $^ -o $@ $(CFLAGS) $(SECCOMP)
 
+tests:
+	$(MAKE) -C tests
+
 clean:
 	$(RM) $(OBJS) trace
 
+.PHONY: all tests clean
