@@ -4,7 +4,7 @@ LD	 = lld
 CFLAGS	 = -g -Wall -O2 -D_POSIX_C_SOURCE=20180920 -fPIC
 SECCOMP  = -lseccomp
 
-all: mini-trace mini-trace-childs bpf-trace
+all: mini-trace mini-trace-childs bpf-trace trace-many
 
 SRCS	 = $(shell ls *.c)
 OBJS	 = $(patsubst %.c, %.o, ${SRCS})
@@ -19,6 +19,9 @@ mini-trace-childs: mini-trace-childs.o
 	$(CC) $^ -o $@ $(CFLAGS)
 
 bpf-trace: bpf-trace.o
+	$(CC) $^ -o $@ $(CFLAGS) $(SECCOMP)
+
+trace-many:: trace-many.o
 	$(CC) $^ -o $@ $(CFLAGS) $(SECCOMP)
 
 tests:
